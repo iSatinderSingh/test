@@ -1,0 +1,125 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<form method="post">
+    <div class="row">
+        <div class="col-md-4  col-md-offset-4">
+            <br />
+            @if (Model.Message != null)
+            {
+                <span class="textprimary" style="text-align: center;"> @Model.Message</span>
+            }
+            <h2 class="textprimary" style="text-align: center;">Login</h2>
+            <br />
+            <br />
+            <div class="form-group">
+                <label for="exampleInputEmail1">E-mail</label>
+                <input asp-for="Input.Email" class="form-control" />
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+
+            </div>
+            <div class="form-group">
+                <label for="exampleInputPassword1">Password</label>
+                <input asp-for="Input.Password" class="form-control" />
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+
+            </div>
+            <div class="form-group" style="text-align: center; margin-top:32px;">
+                <input type="submit" value="Login" class="btn btn-primary " />
+
+            </div>
+            <div class="form-group" style="text-align: center;">
+                <br /><br />
+
+
+                <a style="display:none;" asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl"
+                   class="text-center h3 textprimary">Don't have an account already? Create one here.</a>
+
+                <br />   <br />
+
+
+                <a id="btnReset" style="cursor:pointer;" class="text-center textprimary">Lost Password - Click Here to Reset.</a>
+            </div>
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <span id="spnMessage">
+
+            </span>
+        </div>
+
+    </div>
+</form>
+
+
+@Html.AntiForgeryToken()
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+ 
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            function fnValid1() {
+                var flagset = true;
+                if ($("#Input_Email").val().trim().length == 0) {
+                    flagset = false;
+                    alert("Please enter emailid");
+                }
+
+                return flagset;
+            }
+
+            $("#btnReset").on('click', function (e) {
+                $("#btnReset").html("Processing...");
+                e.preventDefault();
+                var obj = {
+                    "emailid": $("#Input_Email").val()                   
+                }
+
+
+                if (fnValid1()) {
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/api/General/GeneratePasswordOnly",
+                        headers: {
+                            "XSRF-TOKEN": $('input:hidden[name="__RequestVerificationToken"]').val()
+                        },
+                        data: JSON.stringify(obj),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: OnSuccess,
+                        error: OnErrorCall
+                    });
+                }
+                function OnSuccess(data) {
+                    $("#btnReset").html("Processing....");
+                    if (data.success) {
+                        $("#spnMessage").html(data.message);
+                        $("#spnMessage").show();
+                        $("#btnLogin").show();
+
+                        //  var url = "/Page3_bestDescribe?e=" + obj.emailid + "&bd=" + obj.bestDescribe + "&s=" + obj.loanSeeking + "&Id=0";
+                        //  window.location.href = url;
+                        $("#btnReset").html("Lost Password - Click Here to Reset.");
+                    } else {
+                        alert("Try again later.");
+                        $("#btnReset").html("Lost Password - Click Here to Reset.");
+                    }
+
+
+                }
+                function OnErrorCall(data) { alert("Error occurs, pls try again later."); $("#btnReset").html("Lost Password - Click Here to Reset.");}
+
+            });
+        });
+
+    </script>
+
+}
